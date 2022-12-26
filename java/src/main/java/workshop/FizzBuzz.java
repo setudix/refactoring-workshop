@@ -8,18 +8,22 @@ package workshop;
  */
 public class FizzBuzz {
     public static String say(int number) {
-        String strReturn = null;
 
-        if (number % 15 == 0) {
-            strReturn = "FizzBuzz";
-        } else {
-            if (number % 3 == 0) strReturn = "Fizz";
+        if (canDivide(number, 15))
+            return "FizzBuzz";
+        else if (canDivide(number, 3))
+            return "Fizz";
+        else if (canDivide(number, 5))
+            return "Buzz";
+        else
+            return String.valueOf(number);
 
-            if (number % 5 == 0) strReturn = "Buzz";
-        }
+    }
 
-        if (strReturn != null) return strReturn;
-
-        return String.valueOf(number);
+    public static boolean canDivide(int dividend, int divisor){
+        if (dividend % divisor == 0)
+            return true;
+        else
+            return false;
     }
 }

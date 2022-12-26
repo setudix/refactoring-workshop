@@ -30,9 +30,6 @@ public class TriviaGame {
         return "Rock Question " + index;
     }
 
-    public boolean isPlayable() {
-        return (howManyPlayers() >= 2);
-    }
 
     public boolean add(String playerName) {
 
@@ -56,12 +53,13 @@ public class TriviaGame {
         announce("They have rolled a " + roll);
 
         if (inPenaltyBox[currentPlayer]) {
-            if (roll % 2 != 0) {
+            if (isRollOdd(roll)) {
                 isGettingOutOfPenaltyBox = true;
 
                 announce(players.get(currentPlayer) + " is getting out of the penalty box");
-                places[currentPlayer] = places[currentPlayer] + roll;
-                if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
+                incrementPlaces(roll);
+                if (needToReducePlaces(currentPlayer))
+                    reducePlaces();
 
                 announce(players.get(currentPlayer)
                         + "'s new location is "
@@ -75,8 +73,9 @@ public class TriviaGame {
 
         } else {
 
-            places[currentPlayer] = places[currentPlayer] + roll;
-            if (places[currentPlayer] > 11) places[currentPlayer] = places[currentPlayer] - 12;
+            incrementPlaces(roll);
+            if (needToReducePlaces(currentPlayer))
+                reducePlaces();
 
             announce(players.get(currentPlayer)
                     + "'s new location is "
@@ -86,7 +85,21 @@ public class TriviaGame {
         }
 
     }
-
+    private boolean isRollOdd(int roll){
+        if (roll % 2 != 0)
+            return true;
+        else
+            return false;
+    }
+    private boolean needToReducePlaces(int currentPlayer){
+        return places[currentPlayer] > 11;
+    }
+    private void incrementPlaces(int increment){
+        places[currentPlayer] += increment;
+    }
+    private void reducePlaces(){
+        places[currentPlayer] = places[currentPlayer] - 12;
+    }
     private void askQuestion() {
         if (currentCategory() == "Pop")
             announce(popQuestions.removeFirst());
@@ -100,17 +113,34 @@ public class TriviaGame {
 
 
     private String currentCategory() {
-        if (places[currentPlayer] == 0) return "Pop";
-        if (places[currentPlayer] == 4) return "Pop";
-        if (places[currentPlayer] == 8) return "Pop";
-        if (places[currentPlayer] == 1) return "Science";
-        if (places[currentPlayer] == 5) return "Science";
-        if (places[currentPlayer] == 9) return "Science";
-        if (places[currentPlayer] == 2) return "Sports";
-        if (places[currentPlayer] == 6) return "Sports";
-        if (places[currentPlayer] == 10) return "Sports";
-        return "Rock";
+        if (isPop())
+            return "Pop";
+        else if (isScience())
+            return "Science";
+        else if (isSports())
+            return "Sports";
+        else
+            return "Rock";
     }
+    private boolean isPop(){
+        if (places[currentPlayer] % 4 == 0)
+            return true;
+        else
+            return false;
+    }
+    private boolean isScience(){
+        if (places[currentPlayer] % 4 == 1)
+            return true;
+        else
+            return false;
+    }
+    private boolean isSports(){
+        if (places[currentPlayer] % 4 == 2)
+            return true;
+        else
+            return false;
+    }
+
 
     public boolean wasCorrectlyAnswered() {
         if (inPenaltyBox[currentPlayer]) {
@@ -123,12 +153,12 @@ public class TriviaGame {
                         + " Gold Coins.");
 
                 boolean winner = didPlayerWin();
-                currentPlayer++;
+                incrementCurrentPlayer();
                 if (currentPlayer == players.size()) currentPlayer = 0;
 
                 return winner;
             } else {
-                currentPlayer++;
+                incrementCurrentPlayer();
                 if (currentPlayer == players.size()) currentPlayer = 0;
                 return true;
             }
@@ -144,7 +174,7 @@ public class TriviaGame {
                     + " Gold Coins.");
 
             boolean winner = didPlayerWin();
-            currentPlayer++;
+            incrementCurrentPlayer();
             if (currentPlayer == players.size()) currentPlayer = 0;
 
             return winner;
@@ -156,11 +186,16 @@ public class TriviaGame {
         announce(players.get(currentPlayer) + " was sent to the penalty box");
         inPenaltyBox[currentPlayer] = true;
 
-        currentPlayer++;
-        if (currentPlayer == players.size()) currentPlayer = 0;
+        incrementCurrentPlayer();
+        if (isPlayerSizedReached()) currentPlayer = 0;
         return true;
     }
-
+    private boolean isPlayerSizedReached(){
+        return currentPlayer == players.size();
+    }
+    private void incrementCurrentPlayer(){
+        currentPlayer++;
+    }
     private boolean didPlayerWin() {
         return !(purses[currentPlayer] == 6);
     }

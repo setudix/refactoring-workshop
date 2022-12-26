@@ -8,15 +8,13 @@ import java.util.List;
 
 public class PlaintextToHtmlConverter {
     String source;
-    int i;
+    int currentLocation;
     List<String> result;
     List<String> convertedLine;
     String characterToConvert;
 
     public String toHtml() throws Exception {
-        String text = read();
-        String htmlLines = basicHtmlEncode(text);
-        return htmlLines;
+        return basicHtmlEncode(read());
     }
 
     protected String read() throws IOException {
@@ -25,12 +23,12 @@ public class PlaintextToHtmlConverter {
 
     private String basicHtmlEncode(String source) {
         this.source = source;
-        i = 0;
+        currentLocation = 0;
         result = new ArrayList<>();
         convertedLine = new ArrayList<>();
         characterToConvert = stashNextCharacterAndAdvanceThePointer();
 
-        while (i <= this.source.length()) {
+        while (isCurrentLocationOutOfBounds() == false) {
             switch (characterToConvert) {
                 case "<":
                     convertedLine.add("&lt;");
@@ -47,33 +45,34 @@ public class PlaintextToHtmlConverter {
                 default:
                     pushACharacterToTheOutput();
             }
-
-            if (i >= source.length()) break;
-
             characterToConvert = stashNextCharacterAndAdvanceThePointer();
         }
         addANewLine();
-        String finalResult = String.join("<br />", result);
-        return finalResult;
+        return getFinalResult();
     }
 
-    //pick the character from source string
-    //and increment the pointer
+    private boolean isCurrentLocationOutOfBounds(){
+        return currentLocation >= this.source.length();
+    }
     private String stashNextCharacterAndAdvanceThePointer() {
-        char c = source.charAt(i);
-        i += 1;
-        return String.valueOf(c);
+        char currentCharacter = source.charAt(currentLocation);
+        incrementCurrentLocation();
+        return String.valueOf(currentCharacter);
     }
 
-    //stringfy convertedLine array and push into result
-    //reset convertedLine
     private void addANewLine() {
         String line = String.join("", convertedLine);
         result.add(line);
-        convertedLine = new ArrayList<>();
+        convertedLine.clear();
     }
 
     private void pushACharacterToTheOutput() {
         convertedLine.add(characterToConvert);
+    }
+    private void incrementCurrentLocation(){
+        currentLocation++;
+    }
+    private String getFinalResult(){
+        return String.join("<br />", result);
     }
 }
